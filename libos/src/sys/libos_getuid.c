@@ -143,6 +143,50 @@ out:
     return ret;
 }
 
+long libos_syscall_setregid(gid_t rgid, gid_t egid) {
+    int ret = -EPERM;
+    struct libos_thread* current = get_cur_thread();
+
+    lock(&current->lock);
+    if (current->euid == 0) {
+        ret = 0;
+    } if ((int)rgid != -1 && (int)egid != -1) {
+        /* swapping or assigning only existing values ? */
+        if ((rgid == current->gid || rgid == current->egid) &&
+            (egid == current->gid || egid == current->egid))
+            ret = 0;
+    } else if ((int)rgid != -1) {
+        if (rgid == current->egid)
+            ret = 0;
+    } else if ((int)egid != -1) {
+        if (egid == current->gid || egid == current->sgid)
+            ret = 0;
+    } else if ((int)egid == -1 && (int)rgid == -1) {
+        ret = 0;
+    }
+    if (ret != 0)
+        goto out;
+
+    int set_sgid = 0;
+    if ((int)rgid != -1) {
+        current->gid = rgid;
+        set_sgid = 1;
+    }
+    if ((int)egid != -1) {
+        if (current->gid != egid)
+            set_sgid = 1;
+        current->egid = egid;
+    }
+    if (set_sgid)
+        current->sgid = current->egid;
+
+    ret = 0;
+
+out:
+    unlock(&current->lock);
+    return ret;
+}
+
 long libos_syscall_setresuid(uid_t ruid, uid_t euid, uid_t suid) {
     int ret;
     struct libos_thread* current = get_cur_thread();

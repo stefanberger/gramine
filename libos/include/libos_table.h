@@ -131,6 +131,7 @@ long libos_syscall_getresuid(uid_t* ruid, uid_t* euid, uid_t* suid);
 long libos_syscall_setresgid(gid_t rgid, gid_t egid, gid_t sgid);
 long libos_syscall_getresgid(gid_t* rgid, gid_t* egid, gid_t* sgid);
 long libos_syscall_setreuid(uid_t ruid, uid_t euid);
+long libos_syscall_setregid(gid_t rgid, gid_t egid);
 long libos_syscall_rt_sigpending(__sigset_t* set, size_t sigsetsize);
 long libos_syscall_rt_sigtimedwait(const __sigset_t* unblocked_ptr, siginfo_t* info,
                                    struct __kernel_timespec* timeout, size_t setsize);
