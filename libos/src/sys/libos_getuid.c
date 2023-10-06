@@ -187,6 +187,39 @@ long libos_syscall_getresuid(uid_t* ruid, uid_t* euid, uid_t* suid) {
     return 0;
 }
 
+long libos_syscall_setresgid(gid_t rgid, gid_t egid, gid_t sgid) {
+    int ret;
+    struct libos_thread* current = get_cur_thread();
+
+    lock(&current->lock);
+    if (current->euid != 0) {
+        ret = -EPERM;
+        if ((int)rgid != -1 &&
+            rgid != current->gid && rgid != current->egid && rgid != current->sgid)
+            goto out;
+
+        if ((int)egid != -1 &&
+            egid != current->gid && egid != current->egid && egid != current->sgid)
+            goto out;
+
+        if ((int)sgid != -1 &&
+            sgid != current->gid && sgid != current->egid && sgid != current->sgid)
+            goto out;
+    }
+    if ((int)rgid != -1)
+        current->gid = rgid;
+    if ((int)egid != -1)
+        current->egid = egid;
+    if ((int)sgid != -1)
+        current->sgid = sgid;
+    ret = 0;
+
+out:
+    unlock(&current->lock);
+    return ret;
+}
+
+
 #define NGROUPS_MAX 65536 /* # of supplemental group IDs; has to be same as host OS */
 
 long libos_syscall_setgroups(int gidsetsize, gid_t* grouplist) {
