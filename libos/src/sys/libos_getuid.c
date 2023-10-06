@@ -219,6 +219,18 @@ out:
     return ret;
 }
 
+long libos_syscall_getresgid(gid_t* rgid, gid_t* egid, gid_t* sgid) {
+
+    if (!is_user_memory_writable(rgid, sizeof(gid_t)) ||
+        !is_user_memory_writable(egid, sizeof(gid_t)) ||
+        !is_user_memory_writable(sgid, sizeof(gid_t)))
+        return -EFAULT;
+
+    getresgid(rgid, egid, sgid);
+
+    return 0;
+}
+
 
 #define NGROUPS_MAX 65536 /* # of supplemental group IDs; has to be same as host OS */
 
